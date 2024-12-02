@@ -1,6 +1,7 @@
 import { StateUpdater, useEffect, useState } from 'preact/hooks'
 import './app.css'
 import PixelEditor from './PixelEditor'
+import CanvasDisplay from './CanvasDisplay';
 
 const print = (s) => console.log(s);
 const CONNECT_INDEX = -1
@@ -9,6 +10,7 @@ const INK_INDEX = 1
 export function App() {
   const [stroke, setStroke] = useState([[0,0,0]])
   const [target, setTarget] = useState([[0,0,0]])
+  const [heat, setHeat] = useState([[0,0,0]])
   
   const zeroSquareArray = (x: number, y: number): number[][] => {
     return Array.from({ length: y }, () => Array(x).fill(0));
@@ -49,18 +51,8 @@ export function App() {
       }
     }
     return heat;
-    // ta.forEach((taRow, tay)=>{
-    //   taRow.array.forEach((taEle, tax) => {
-    //     // scan the stroke
-    //     st.array.forEach((stRow) => {
-    //       stRow.array.forEach((stEle) => {
-    //         if (taEle === stEle)
-    //           heat[tax, tay]
-    //       });
-    //     });
-    //   });
-    // })    
   };
+
   const handleStrokeChange = (newStrokeArr: number[][]) => {
     // console.log("app level gets stroke change", newStrokeArr)
     setStroke(newStrokeArr)
@@ -73,6 +65,7 @@ export function App() {
     setTarget(newTargetArr)
     const heatmap = convolution(stroke, newTargetArr)
     console.log("heat", heatmap)
+    setHeat(heatmap);
   };
 
   return (
@@ -85,7 +78,7 @@ export function App() {
         colors={['#FF00FF', '#FFFFFF', '#000000']}
         onChange={handleTargetChange}
         />
-
+      <CanvasDisplay blocks={20} width={180} height={120} target={target} heat={heat} stroke={stroke} colors={['#FF00FF', '#FFFFFF', '#000000']}/>
       </div>
   )
 }
