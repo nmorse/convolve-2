@@ -20,11 +20,11 @@ const CanvasDisplay = ({ target, heat, stroke, width, height, blocks, colors }) 
     ctx.clearRect(0, 0, width, height);
 
     // Draw the target image
-    for (let ty = 0; ty < rows; ty++) {
-      for (let tx = 0; tx < cols; tx++) {
-        drawBlock(ctx, tx, ty, target[ty][tx]+1, 1.0);
-      }
-    }
+    // for (let ty = 0; ty < rows; ty++) {
+    //   for (let tx = 0; tx < cols; tx++) {
+    //     drawBlock(ctx, tx, ty, target[ty][tx]+1, 1.0);
+    //   }
+    // }
 
     for (let ty = 0; ty < (rows - 3); ty++) {
       for (let tx = 0; tx < (cols - 3); tx++) {

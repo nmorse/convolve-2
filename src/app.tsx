@@ -3,9 +3,12 @@ import './app.css'
 import PixelEditor from './PixelEditor'
 import CanvasDisplay from './CanvasDisplay';
 
-const print = (s) => console.log(s);
 const CONNECT_INDEX = -1
 const INK_INDEX = 1
+const STROKE_ROWS = 4
+const STROKE_COLS = 4
+const TARGET_ROWS = 6
+const TARGET_COLS = 9
 
 export function App() {
   const [stroke, setStroke] = useState([[0,0,0]])
@@ -29,7 +32,8 @@ export function App() {
           ink_min += 1;
       }
       connect_min -= 1;  
-    }    const heat: number[][] = zeroSquareArray(range_x, range_y);
+    }    
+    const heat: number[][] = zeroSquareArray(range_x, range_y);
     if (!(st.length < ta.length && st[0] && ta[0] && st[0].length < ta[0].length)) 
       return heat;
     
@@ -60,12 +64,56 @@ export function App() {
     // console.log(heatmap)
   };
 
+  const paint = (heatmap: number[][], targetmap) => {
+    let warmestScore = 0;
+    const range_y = TARGET_ROWS - STROKE_ROWS + 1
+    const range_x = TARGET_COLS - STROKE_COLS + 1
+    for (let ty = 0; ty < range_y; ty++) {
+      for (let tx = 0; tx < range_x; tx++) {
+        if (heatmap[ty][tx] > warmestScore) {
+          warmestScore = heatmap[ty][tx]; 
+        }
+      }
+    }
+    const warms = [];
+    for (let ty = 0; ty < range_y; ty++) {
+      for (let tx = 0; tx < range_x; tx++) {
+        if (heatmap[ty][tx] === warmestScore) {
+          warms.push([tx, ty])          
+        }
+      }
+    }
+    const bests = warms.length
+    if (warmestScore === 0 || bests <= 0) {
+      return 0
+    }
+    const i = Math.floor(Math.random() * bests)
+    // warms[i] is the random chosen best (of possibly several) stroke match.
+    for (let ty = 0; ty < STROKE_ROWS; ty++) {
+      for (let tx = 0; tx < STROKE_COLS; tx++) {
+        if (stroke[ty][tx] === INK_INDEX) {
+          targetmap[ty+warms[i][1]][tx+warms[i][0]] = CONNECT_INDEX;
+        }  
+      }
+    }
+    return 1
+  };
+
   const handleTargetChange = (newTargetArr: number[][]) => {
     // console.log("app level gets target change", newTargetArr)
     setTarget(newTargetArr)
-    const heatmap = convolution(stroke, newTargetArr)
+    let heatmap = convolution(stroke, newTargetArr)
     console.log("heat", heatmap)
     setHeat(heatmap);
+    const targetCopy = JSON.parse(JSON.stringify(newTargetArr));
+    let brushstrokes = paint(heatmap, targetCopy);
+    let limit = 8
+    while (brushstrokes  && limit--) {
+      console.log(brushstrokes)
+      heatmap = convolution(stroke, targetCopy)
+      brushstrokes = paint(heatmap, targetCopy)
+      console.log(targetCopy)
+    }
   };
 
   return (
