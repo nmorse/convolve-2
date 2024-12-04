@@ -3,13 +3,10 @@ import { useRef, useEffect } from 'preact/hooks';
 
 const CanvasDisplay = ({ target, heat, stroke, width, height, blocks, colors }) => {
   const canvasRef = useRef(null);
-  const pixelSize = blocks; // Size of each pixel block
-  const rows = height / pixelSize; // Number of rows
-  const cols = width / pixelSize; // Number of columns
 
   const drawBlock = (ctx: CanvasRenderingContext2D, x: number, y: number, color_index: number, alpha: number) => {
     ctx.fillStyle = color_index === -1 ? `rgba(255, 0, 255, ${alpha})` : color_index ? `rgba(255, 255, 255, ${alpha})` : `rgba(0, 0, 0, ${alpha})`;
-    ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+    ctx.fillRect(x * blocks, y * blocks, blocks, blocks);
   };
 
   useEffect(() => {
@@ -19,16 +16,19 @@ const CanvasDisplay = ({ target, heat, stroke, width, height, blocks, colors }) 
     // Clear the canvas
     ctx.clearRect(0, 0, width, height);
 
-    // Draw the target image
-    // for (let ty = 0; ty < rows; ty++) {
-    //   for (let tx = 0; tx < cols; tx++) {
-    //     drawBlock(ctx, tx, ty, target[ty][tx]+1, 1.0);
-    //   }
-    // }
-
-    for (let ty = 0; ty < (rows - 3); ty++) {
-      for (let tx = 0; tx < (cols - 3); tx++) {
-        if (heat[ty][tx] > 0) {
+    let minHeat = 0
+    for (let sy = 0; sy < stroke.length; sy++) {
+      for (let sx = 0; sx < stroke[sy].length; sx++) {
+        if (stroke[sy][sx] > 0) {
+          minHeat++
+        }
+      }
+    }
+    const heatRows = heat.length
+    const heatCols = heat[0].length
+    for (let ty = 0; ty < heatRows; ty++) {
+      for (let tx = 0; tx < heatCols; tx++) {
+        if (heat[ty][tx] >= minHeat) {
           for (let sy = 0; sy < stroke.length; sy++) {
             for (let sx = 0; sx < stroke[sy].length; sx++) {
               if (stroke[sy][sx] === 1) { // INK_INDEX)

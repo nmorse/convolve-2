@@ -5,10 +5,11 @@ import CanvasDisplay from './CanvasDisplay';
 
 const CONNECT_INDEX = -1
 const INK_INDEX = 1
-const STROKE_ROWS = 4
-const STROKE_COLS = 4
-const TARGET_ROWS = 6
-const TARGET_COLS = 9
+const PIXEL_BLOCK = 4
+const STROKE_ROWS = 6
+const STROKE_COLS = 6
+const TARGET_ROWS = 50
+const TARGET_COLS = 100
 
 export function App() {
   const [stroke, setStroke] = useState([[0,0,0]])
@@ -31,7 +32,8 @@ export function App() {
         if (st[sy][sx] === INK_INDEX) 
           ink_min += 1;
       }
-      connect_min -= 1;  
+      connect_min -= 1;
+      ink_min = Math.floor(ink_min*0.95);
     }    
     const heat: number[][] = zeroSquareArray(range_x, range_y);
     if (!(st.length < ta.length && st[0] && ta[0] && st[0].length < ta[0].length)) 
@@ -85,7 +87,7 @@ export function App() {
     }
     const bests = warms.length
     if (warmestScore === 0 || bests <= 0) {
-      return 0
+      return [0, [0,0]];
     }
     const i = Math.floor(Math.random() * bests)
     // warms[i] is the random chosen best (of possibly several) stroke match.
@@ -96,7 +98,7 @@ export function App() {
         }  
       }
     }
-    return 1
+    return [1, warms[i]]
   };
 
   const handleTargetChange = (newTargetArr: number[][]) => {
@@ -106,27 +108,31 @@ export function App() {
     console.log("heat", heatmap)
     setHeat(heatmap);
     const targetCopy = JSON.parse(JSON.stringify(newTargetArr));
-    let brushstrokes = paint(heatmap, targetCopy);
-    let limit = 8
-    while (brushstrokes  && limit--) {
-      console.log(brushstrokes)
-      heatmap = convolution(stroke, targetCopy)
-      brushstrokes = paint(heatmap, targetCopy)
-      console.log(targetCopy)
+    let [strokes, pos] = paint(heatmap, targetCopy);
+    let limit = 8000
+    const brushStrokes = [pos]; 
+    while (strokes && limit--) {
+      // console.log(brushstrokes)
+      heatmap = convolution(stroke, targetCopy);
+      [strokes, pos] = paint(heatmap, targetCopy);
+      brushStrokes.push(pos)
+      // console.log(targetCopy)
     }
+    console.log(brushStrokes)
+    //setBrushStrokes(brushStrokes)
   };
 
   return (
       <div>
-      <PixelEditor blocks={20} width={80} height={80} title='stroke'
+      <PixelEditor blocks={PIXEL_BLOCK} width={STROKE_COLS*PIXEL_BLOCK} height={STROKE_ROWS*PIXEL_BLOCK} title='stroke'
         colors={['#FF00FF', '#FFFFFF', '#000000']}
         onChange={handleStrokeChange}
         />
-      <PixelEditor blocks={20} width={180} height={120} title='target'
+      <PixelEditor blocks={PIXEL_BLOCK} width={TARGET_COLS*PIXEL_BLOCK} height={TARGET_ROWS*PIXEL_BLOCK} title='target'
         colors={['#FF00FF', '#FFFFFF', '#000000']}
         onChange={handleTargetChange}
         />
-      <CanvasDisplay blocks={20} width={180} height={120} target={target} heat={heat} stroke={stroke} colors={['#FF00FF', '#FFFFFF', '#000000']}/>
+      <CanvasDisplay blocks={PIXEL_BLOCK} width={TARGET_COLS*PIXEL_BLOCK} height={TARGET_ROWS*PIXEL_BLOCK} target={target} heat={heat} stroke={stroke} colors={['#FF00FF', '#FFFFFF', '#000000']}/>
       </div>
   )
 }
